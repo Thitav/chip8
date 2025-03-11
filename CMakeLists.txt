@@ -8,6 +8,4 @@ add_executable(chip8 src/main.c
         src/chip8.c
         src/instructions.c
         src/instructions.h
-        src/video/video.c
-        src/video/video.h
 )
