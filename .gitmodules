@@ -1,0 +1,3 @@
+[submodule "lib/simple-console-engine"]
+	path = lib/simple-console-engine
+	url = https://github.com/thitav/simple-console-engine

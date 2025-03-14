@@ -2,18 +2,7 @@
 #define CHIP8_H
 
 #include <stdint.h>
-#include <stdbool.h>
-
-typedef struct
-{
-  void (*clear_screen)();
-
-  void (*draw_sprite)(uint8_t x, uint8_t y);
-
-  bool (*get_key_state)(uint8_t key);
-
-  uint8_t (*wait_key_press)();
-} IO_Interface;
+#include "io.h"
 
 typedef struct
 {
@@ -25,8 +14,12 @@ typedef struct
   uint8_t st;
   uint16_t pc;
   uint16_t i;
-  IO_Interface io;
+  IO_Interface io_interface;
 } Chip8;
 
+inline uint16_t chip8_fetch_instruction(const Chip8 *chip8)
+{
+  return chip8->memory[chip8->pc] << 8 | chip8->memory[chip8->pc + 1];
+}
 
 #endif

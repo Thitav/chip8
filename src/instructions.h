@@ -3,6 +3,7 @@
 
 #include "chip8.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef enum
 {
@@ -43,72 +44,210 @@ typedef enum
   CHIP8_INSTRUCTION_LD_REGS_IM = 0xF065
 } CHIP8_INSTRUCTION;
 
-void chip8_instruction_cls(const Chip8 *chip8);
+inline void chip8_instruction_cls(const Chip8 *chip8)
+{
+  chip8->io_interface.clear_screen(&chip8->io_interface);
+}
 
-void chip8_instruction_ret(Chip8 *chip8);
+inline void chip8_instruction_ret(Chip8 *chip8)
+{
+  chip8->pc = chip8->stack[chip8->sp];
+  chip8->sp--;
+}
 
-void chip8_instruction_jp_addr(Chip8 *chip8, uint16_t addr);
+inline void chip8_instruction_jp_addr(Chip8 *chip8, const uint16_t addr)
+{
+  chip8->pc = addr;
+}
 
-void chip8_instruction_call_addr(Chip8 *chip8, uint16_t addr);
+inline void chip8_instruction_call_addr(Chip8 *chip8, const uint16_t addr)
+{
+  chip8->sp++;
+  chip8->stack[chip8->sp] = chip8->pc;
+  chip8->pc = addr;
+}
 
-void chip8_instruction_se_byte(Chip8 *chip8, uint8_t vx, uint8_t byte);
+inline void chip8_instruction_se_byte(Chip8 *chip8, const uint8_t vx, const uint8_t byte)
+{
+  if (chip8->v[vx] == byte)
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_sne_byte(Chip8 *chip8, uint8_t vx, uint8_t byte);
+inline void chip8_instruction_sne_byte(Chip8 *chip8, const uint8_t vx, const uint8_t byte)
+{
+  if (chip8->v[vx] != byte)
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_se_reg(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_se_reg(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  if (chip8->v[vx] == chip8->v[vy])
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_ld_reg_byte(Chip8 *chip8, uint8_t vx, uint8_t byte);
+inline void chip8_instruction_ld_reg_byte(Chip8 *chip8, const uint8_t vx, const uint8_t byte)
+{
+  chip8->v[vx] = byte;
+}
 
-void chip8_instruction_add_byte(Chip8 *chip8, uint8_t vx, uint8_t byte);
+inline void chip8_instruction_add_byte(Chip8 *chip8, const uint8_t vx, const uint8_t byte)
+{
+  chip8->v[vx] += byte;
+}
 
-void chip8_instruction_ld_reg_reg(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_ld_reg_reg(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[vx] = chip8->v[vy];
+}
 
-void chip8_instruction_or(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_or(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[vx] |= chip8->v[vy];
+}
 
-void chip8_instruction_and(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_and(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[vx] &= chip8->v[vy];
+}
 
-void chip8_instruction_xor(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_xor(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[vx] ^= chip8->v[vy];
+}
 
-void chip8_instruction_add_reg(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_add_reg(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  const uint16_t sum = chip8->v[vx] + chip8->v[vy];
+  chip8->v[0xF] = (uint8_t) (sum > UINT8_MAX);
+  chip8->v[vx] = (uint8_t) (sum & 0xFF);
+}
 
-void chip8_instruction_sub(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_sub(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[0xF] = chip8->v[vx] > chip8->v[vy];
+  chip8->v[vx] -= chip8->v[vy];
+}
 
-void chip8_instruction_shr(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_shr(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->v[0xF] = chip8->v[vx] & 0xFE;
+  chip8->v[vx] >>= 1;
+}
 
-void chip8_instruction_subn(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_subn(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  chip8->v[0xF] = chip8->v[vy] > chip8->v[vx];
+  chip8->v[vx] = chip8->v[vy] - chip8->v[vx];
+}
 
-void chip8_instruction_shl(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_shl(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->v[0xF] = chip8->v[vx] >> 7;
+  chip8->v[vx] <<= 1;
+}
 
-void chip8_instruction_sne_reg(Chip8 *chip8, uint8_t vx, uint8_t vy);
+inline void chip8_instruction_sne_reg(Chip8 *chip8, const uint8_t vx, const uint8_t vy)
+{
+  if (chip8->v[vx] != chip8->v[vy])
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_ld_i_addr(Chip8 *chip8, uint16_t addr);
+inline void chip8_instruction_ld_i_addr(Chip8 *chip8, const uint16_t addr)
+{
+  chip8->i = addr;
+}
 
-void chip8_instruction_jp_v0(Chip8 *chip8, uint16_t addr);
+inline void chip8_instruction_jp_v0(Chip8 *chip8, const uint16_t addr)
+{
+  chip8->pc = chip8->v[0] + addr;
+}
 
-void chip8_instruction_rnd(Chip8 *chip8, uint8_t vx, uint8_t byte);
 
-void chip8_instruction_drw(Chip8 *chip8, uint8_t vx, uint8_t vy, uint8_t nibble);
+inline void chip8_instruction_rnd(Chip8 *chip8, const uint8_t vx, const uint8_t byte)
+{
+  chip8->v[vx] = rand() & byte;
+}
 
-void chip8_instruction_skp(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_drw(const Chip8 *chip8, const uint8_t vx, const uint8_t vy, const uint8_t nibble)
+{
+  chip8->io_interface.draw_sprite(&chip8->io_interface); // chip8->v[vx], chip8->v[vy]
+}
 
-void chip8_instruction_sknp(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_skp(Chip8 *chip8, const uint8_t vx)
+{
+  if (chip8->io_interface.get_key_state(&chip8->io_interface, chip8->v[vx]))
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_ld_reg_dt(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_sknp(Chip8 *chip8, const uint8_t vx)
+{
+  if (!chip8->io_interface.get_key_state(&chip8->io_interface, chip8->v[vx]))
+  {
+    chip8->pc += 2;
+  }
+}
 
-void chip8_instruction_ld_reg_k(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_reg_dt(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->v[vx] = chip8->dt;
+}
 
-void chip8_instruction_ld_dt_reg(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_reg_k(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->v[vx] = chip8->io_interface.wait_key_press(&chip8->io_interface);
+}
 
-void chip8_instruction_ld_st_reg(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_dt_reg(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->dt = chip8->v[vx];
+}
 
-void chip8_instruction_add_i(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_st_reg(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->st = chip8->v[vx];
+}
 
-void chip8_instruction_ld_i_spt(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_add_i(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->i += chip8->v[vx];
+}
 
-void chip8_instruction_ld_im_bcd(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_i_spt(Chip8 *chip8, const uint8_t vx)
+{
+  // load addr of sprite[v[vx]] into i
+}
 
-void chip8_instruction_ld_im_regs(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_im_bcd(Chip8 *chip8, const uint8_t vx)
+{
+  chip8->memory[chip8->i] = chip8->v[vx] / 100;
+  chip8->memory[chip8->i + 1] = chip8->v[vx] / 10 % 10;
+  chip8->memory[chip8->i + 2] = chip8->v[vx] % 10;
+}
 
-void chip8_instruction_ld_regs_im(Chip8 *chip8, uint8_t vx);
+inline void chip8_instruction_ld_im_regs(Chip8 *chip8, const uint8_t vx)
+{
+  for (uint8_t r = 0; r <= vx; r++)
+  {
+    chip8->memory[chip8->i + r] = chip8->v[r];
+  }
+}
+
+inline void chip8_instruction_ld_regs_im(Chip8 *chip8, const uint8_t vx)
+{
+  for (uint8_t r = 0; r <= vx; r++)
+  {
+    chip8->v[r] = chip8->memory[chip8->i + r];
+  }
+}
 
 #endif
