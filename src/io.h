@@ -20,7 +20,10 @@ typedef struct IO_Interface
   IO_MODE mode;
   IO_Backend backend;
 
-  void (*draw_sprite)(const struct IO_Interface *io_interface);
+  void (*draw_sprite)(const struct IO_Interface *io_interface,
+                      const uint8_t *sprite_base, uint8_t x,
+                      uint8_t y,
+                      uint8_t height);
 
   void (*clear_screen)(const struct IO_Interface *io_interface);
 

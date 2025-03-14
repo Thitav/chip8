@@ -1,7 +1,24 @@
 #include "io.h"
 
-void io_interface_console_draw_sprite()
+void io_interface_console_draw_sprite(const IO_Interface *io_interface, const uint8_t *sprite_base, const uint8_t x,
+                                      const uint8_t y,
+                                      const uint8_t height)
 {
+  for (uint8_t i = 0; i < height; i++)
+  {
+    for (uint8_t j = 0; j < 8; j++)
+    {
+      if (sprite_base[i] >> j & 0x01)
+      {
+        sce_console_set_cell(&io_interface->backend.console, x + j, y + i, (SCE_ConsoleCell){
+                               SCE_ASCII_FULL_BLOCK,
+                               SCE_FOREGROUND_WHITE | SCE_BACKGROUND_WHITE
+                             }
+        );
+      }
+    }
+  }
+  sce_console_render(&io_interface->backend.console);
 }
 
 void io_interface_console_clear_screen(const IO_Interface *io_interface)
@@ -9,7 +26,7 @@ void io_interface_console_clear_screen(const IO_Interface *io_interface)
   sce_console_clear(&io_interface->backend.console);
 }
 
-bool io_interface_console_get_key_state(IO_Interface *io_interface, uint8_t key)
+bool io_interface_console_get_key_state(const IO_Interface *io_interface, const uint8_t key)
 {
   return true;
 }

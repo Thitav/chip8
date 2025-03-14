@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "instructions.h"
 
+extern uint16_t chip8_fetch_instruction(const Chip8 *chip8);
+
 static const uint8_t DIGITS_SPRITES[] =
 {
   0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -26,8 +28,9 @@ void chip8_init(Chip8 *chip8, const IO_MODE io_mode)
 {
   io_interface_init(&chip8->io_interface, io_mode);
 
-  chip8->memory = {DIGITS_SPRITES};
-  chip8->v = {0};
+  memcpy(chip8->memory, DIGITS_SPRITES, sizeof(DIGITS_SPRITES));
+  memset(chip8->v, 0, sizeof(chip8->v));
+
   chip8->sp = 0;
   chip8->dt = 0;
   chip8->st = 0;
@@ -41,8 +44,8 @@ void chip8_tick(Chip8 *chip8)
   const uint16_t addr = instruction & 0x0FFF;
   const uint8_t byte = instruction & 0x00FF;
   const uint8_t nibble = instruction & 0x000F;
-  const uint8_t vx = instruction & 0x0F00;
-  const uint8_t vy = instruction & 0x00F0;
+  const uint8_t vx = (instruction & 0x0F00) >> 0x08;
+  const uint8_t vy = (instruction & 0x00F0) >> 0x04;
 
   switch (instruction & 0xF000)
   {

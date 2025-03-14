@@ -178,7 +178,8 @@ inline void chip8_instruction_rnd(Chip8 *chip8, const uint8_t vx, const uint8_t 
 
 inline void chip8_instruction_drw(const Chip8 *chip8, const uint8_t vx, const uint8_t vy, const uint8_t nibble)
 {
-  chip8->io_interface.draw_sprite(&chip8->io_interface); // chip8->v[vx], chip8->v[vy]
+  chip8->io_interface.draw_sprite(&chip8->io_interface, &chip8->memory[chip8->i], vx, vy, nibble);
+  // handle xor overlap flag
 }
 
 inline void chip8_instruction_skp(Chip8 *chip8, const uint8_t vx)
@@ -224,7 +225,11 @@ inline void chip8_instruction_add_i(Chip8 *chip8, const uint8_t vx)
 
 inline void chip8_instruction_ld_i_spt(Chip8 *chip8, const uint8_t vx)
 {
-  // load addr of sprite[v[vx]] into i
+  if (vx <= 0x0F)
+  {
+    chip8->i = vx * 5;
+  }
+  // handle error
 }
 
 inline void chip8_instruction_ld_im_bcd(Chip8 *chip8, const uint8_t vx)
