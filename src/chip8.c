@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include <stdint.h>
 #include "instructions.h"
+#include <stdio.h>
 
 extern uint16_t chip8_fetch_instruction(const Chip8 *chip8);
 
@@ -34,12 +35,18 @@ void chip8_init(Chip8 *chip8, const IO_MODE io_mode)
   chip8->sp = 0;
   chip8->dt = 0;
   chip8->st = 0;
-  chip8->pc = 0;
+  chip8->pc = 0x200;
   chip8->i = 0;
+  chip8->last_tick = 0;
 }
 
 void chip8_tick(Chip8 *chip8)
 {
+  if (chip8->last_tick == 0)
+  {
+    chip8->last_tick = clock();
+  }
+
   const uint16_t instruction = chip8_fetch_instruction(chip8);
   const uint16_t addr = instruction & 0x0FFF;
   const uint8_t byte = instruction & 0x00FF;
@@ -182,5 +189,50 @@ void chip8_tick(Chip8 *chip8)
       return;
   }
 
+  const clock_t current_tick = clock();
+  const clock_t delta_tick = current_tick - chip8->last_tick;
+  const clock_t timers_update = delta_tick / CLOCKS_PER_SEC / 60;
+  chip8->last_tick = current_tick - delta_tick % (CLOCKS_PER_SEC / 60);
+
+  if (chip8->dt > 0)
+  {
+    if (chip8->dt < timers_update)
+    {
+      chip8->dt = 0;
+    }
+    else
+    {
+      chip8->dt -= timers_update;
+    }
+  }
+
+  if (chip8->st > 0)
+  {
+    if (chip8->st < timers_update)
+    {
+      chip8->st = 0;
+    }
+    else
+    {
+      chip8->st -= timers_update;
+    }
+  }
+
   chip8->pc += 2;
+}
+
+bool chip8_load_rom(Chip8 *chip8, const char *filename)
+{
+  FILE *file = fopen(filename, "rb");
+  if (file == NULL)
+  {
+    // error
+    return false;
+  }
+
+  fread(&chip8->memory[0x200], sizeof(chip8->memory[0]),
+        sizeof(chip8->memory) / sizeof(chip8->memory[0]) - 0x200,
+        file);
+  //printf("test: %llu\n", n);
+  return true;
 }

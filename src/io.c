@@ -8,7 +8,7 @@ void io_interface_console_draw_sprite(const IO_Interface *io_interface, const ui
   {
     for (uint8_t j = 0; j < 8; j++)
     {
-      if (sprite_base[i] >> j & 0x01)
+      if (sprite_base[i] << j & 0x80)
       {
         sce_console_set_cell(&io_interface->backend.console, x + j, y + i, (SCE_ConsoleCell){
                                SCE_ASCII_FULL_BLOCK,

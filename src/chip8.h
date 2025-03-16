@@ -2,6 +2,7 @@
 #define CHIP8_H
 
 #include <stdint.h>
+#include <time.h>
 #include "io.h"
 
 typedef struct
@@ -15,6 +16,7 @@ typedef struct
   uint16_t pc;
   uint16_t i;
   IO_Interface io_interface;
+  clock_t last_tick;
 } Chip8;
 
 inline uint16_t chip8_fetch_instruction(const Chip8 *chip8)
@@ -23,5 +25,9 @@ inline uint16_t chip8_fetch_instruction(const Chip8 *chip8)
 }
 
 void chip8_init(Chip8 *chip8, IO_MODE io_mode);
+
+void chip8_tick(Chip8 *chip8);
+
+bool chip8_load_rom(Chip8 *chip8, const char *filename);
 
 #endif
