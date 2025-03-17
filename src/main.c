@@ -6,7 +6,7 @@ int main()
 {
   Chip8 chip8;
   chip8_init(&chip8, IO_MODE_CONSOLE);
-  chip8_load_rom(&chip8, "C:\\Users\\thitav\\Downloads\\1-chip8-logo.ch8");
+  chip8_load_rom(&chip8, "C:\\Users\\thitav\\Downloads\\3-corax+.ch8");
 
   // FILE *f = fopen("C:\\Users\\thitav\\Downloads\\dump.txt", "wb");
   // printf("%p\n", f);

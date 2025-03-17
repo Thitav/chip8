@@ -42,7 +42,8 @@ void io_interface_init(IO_Interface *io_interface, const IO_MODE mode)
   {
     case IO_MODE_CONSOLE:
       SCE_Console console;
-      sce_console_init(&console, 64, 32, SCE_CONSOLE_BUFFER_CLIP_WRAP | SCE_CONSOLE_BUFFER_OVERLAP_XOR);
+      sce_console_init(&console, 64, 32,
+                       (SCE_ConsoleBufferAttributes){SCE_CONSOLE_BUFFER_CLIP_WRAP, SCE_CONSOLE_BUFFER_OVERLAP_XOR});
 
       io_interface->backend.console = console;
       io_interface->draw_sprite = io_interface_console_draw_sprite;

@@ -1,7 +1,7 @@
 #include "chip8.h"
 #include "instructions.h"
 
-extern void chip8_instruction_cls(Chip8 *chip8);
+extern void chip8_instruction_cls(const Chip8 *chip8);
 
 extern void chip8_instruction_ret(Chip8 *chip8);
 
@@ -45,7 +45,7 @@ extern void chip8_instruction_jp_v0(Chip8 *chip8, uint16_t addr);
 
 extern void chip8_instruction_rnd(Chip8 *chip8, uint8_t vx, uint8_t byte);
 
-extern void chip8_instruction_drw(Chip8 *chip8, uint8_t vx, uint8_t vy, uint8_t nibble);
+extern void chip8_instruction_drw(const Chip8 *chip8, uint8_t vx, uint8_t vy, uint8_t nibble);
 
 extern void chip8_instruction_skp(Chip8 *chip8, uint8_t vx);
 

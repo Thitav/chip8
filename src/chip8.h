@@ -10,7 +10,7 @@ typedef struct
   uint8_t memory[4096];
   uint16_t stack[16];
   uint8_t v[16];
-  uint8_t sp;
+  int8_t sp;
   uint8_t dt;
   uint8_t st;
   uint16_t pc;

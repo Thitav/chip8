@@ -42,7 +42,7 @@ void chip8_init(Chip8 *chip8, const IO_MODE io_mode)
   memcpy(chip8->memory, DIGITS_SPRITES, sizeof(DIGITS_SPRITES));
   memset(chip8->v, 0, sizeof(chip8->v));
 
-  chip8->sp = 0;
+  chip8->sp = -1;
   chip8->dt = 0;
   chip8->st = 0;
   chip8->pc = 0x200;
@@ -58,6 +58,7 @@ void chip8_tick(Chip8 *chip8)
   }
 
   const uint16_t instruction = chip8_fetch_instruction(chip8);
+  chip8->pc += 2;
 
   switch (instruction & 0xF000)
   {
@@ -70,7 +71,7 @@ void chip8_tick(Chip8 *chip8)
         case CHIP8_INSTRUCTION_CLS:
           chip8_instruction_cls(chip8);
           break;
-        case 0x00EE:
+        case CHIP8_INSTRUCTION_RET:
           chip8_instruction_ret(chip8);
           break;
         default:
